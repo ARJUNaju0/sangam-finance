@@ -1,0 +1,164 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+
+<style>
+    .fade-slide {
+        animation: fadeSlide 0.4s ease;
+    }
+
+    @keyframes fadeSlide {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center px-4 py-6">
+
+    <!-- Main Card -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-orange-100 overflow-hidden">
+
+        <!-- Top Branding -->
+        <div class="px-8 pt-10 pb-6 text-center">
+
+            <div class="w-24 h-24 mx-auto rounded-3xl bg-orange-100 flex items-center justify-center text-orange-500 shadow-inner mb-6">
+                <svg class="w-14 h-14" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+            </div>
+
+            <h1 class="text-4xl font-extrabold tracking-tight text-gray-900">
+                sangam<span class="text-orange-500">savings</span>
+            </h1>
+
+            <p class="mt-3 text-gray-500 text-sm leading-relaxed">
+                Manage your savings group digitally with simplicity and transparency.
+            </p>
+        </div>
+
+        <!-- Dynamic Slide Content -->
+        <div class="px-8 pb-8">
+
+            <div id="slideContent" class="fade-slide text-center">
+
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 mb-6">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-900 leading-snug">
+                    Save together,<br>
+                    <span class="text-orange-500">grow together.</span>
+                </h2>
+
+                <p class="mt-4 text-gray-500 text-sm leading-relaxed">
+                    Build a trusted savings community with organized member management and transparent records.
+                </p>
+
+            </div>
+
+            <!-- Dots -->
+            <div class="flex justify-center gap-2 mt-8 mb-8" id="dots">
+                <div class="dot w-6 h-2 rounded-full bg-orange-500 transition-all"></div>
+                <div class="dot w-2 h-2 rounded-full bg-orange-200 transition-all"></div>
+                <div class="dot w-2 h-2 rounded-full bg-orange-200 transition-all"></div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+
+                <button id="nextBtn"
+                        onclick="nextSlide()"
+                        class="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition">
+                    Next
+                </button>
+
+                <a href="{% url 'login' %}"
+                   class="block w-full text-center bg-orange-50 hover:bg-orange-100 text-orange-600 py-4 rounded-xl font-bold transition">
+                    Log In
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSlide = 0;
+
+    const slides = [
+        {
+            icon: `<path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/>`,
+            title: `Save together,<br><span class="text-orange-500">grow together.</span>`,
+            desc: `Build a trusted savings community with organized member management and transparent records.`
+        },
+        {
+            icon: `<path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm11-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6a1 1 0 011-1z" clip-rule="evenodd"/>`,
+            title: `Track everything<br><span class="text-orange-500">digitally.</span>`,
+            desc: `Manage collections, attendance, fines, and reports in one clean platform.`
+        },
+        {
+            icon: `<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.172 7.707 8.879a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>`,
+            title: `Create your<br><span class="text-orange-500">admin account.</span>`,
+            desc: `Set up your Sangam, invite members, and start managing your group in minutes.`
+        }
+    ];
+
+    function nextSlide() {
+
+        currentSlide++;
+
+        if (currentSlide >= slides.length) {
+            window.location.href = "{% url 'register' %}";
+            return;
+        }
+
+        const slide = slides[currentSlide];
+
+        const slideContent = document.getElementById('slideContent');
+
+        slideContent.classList.remove('fade-slide');
+        void slideContent.offsetWidth;
+        slideContent.classList.add('fade-slide');
+
+        slideContent.innerHTML = `
+            <div class="w-20 h-20 mx-auto rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 mb-6">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                    ${slide.icon}
+                </svg>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900 leading-snug">
+                ${slide.title}
+            </h2>
+
+            <p class="mt-4 text-gray-500 text-sm leading-relaxed">
+                ${slide.desc}
+            </p>
+        `;
+
+        const dots = document.querySelectorAll('.dot');
+
+        dots.forEach((dot, index) => {
+            if(index === currentSlide){
+                dot.className = "dot w-6 h-2 rounded-full bg-orange-500 transition-all";
+            } else {
+                dot.className = "dot w-2 h-2 rounded-full bg-orange-200 transition-all";
+            }
+        });
+
+        if(currentSlide === slides.length - 1){
+            document.getElementById('nextBtn').innerText = 'Create Admin Account';
+        }
+    }
+</script>
+
+{% endblock %}

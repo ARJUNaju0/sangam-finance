@@ -1,0 +1,170 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto min-h-screen bg-gray-50 pb-24 md:pb-8 font-sans">
+    
+    <div class="flex justify-between items-center p-6 bg-white shadow-sm mb-6 md:rounded-b-2xl">
+        <div>
+            <h2 class="text-xl md:text-2xl text-gray-800 font-medium">Good evening, <span class="font-bold">{{ request.user.phone|default:request.user.phone }} 👋</span></h2>
+        </div>
+        
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
+            <a href="#" class="text-orange-500 font-bold border-b-2 border-orange-500 pb-1">Home</a>
+            <a href="#" class="hover:text-orange-500 transition">Members</a>
+            <a href="#" class="hover:text-orange-500 transition">Activity</a>
+            <a href="#" class="hover:text-orange-500 transition">Profile</a>
+            
+            <button class="bg-orange-500 text-white px-4 py-2 rounded-full shadow hover:bg-orange-600 transition flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add
+            </button>
+        </div>
+
+        <button class="md:hidden text-gray-400 hover:text-orange-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        </button>
+    </div>
+
+    <div class="px-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl p-6 text-white shadow-md flex justify-between items-center">
+                <div>
+                    <p class="text-orange-100 text-sm font-medium">Weekly Sangam</p>
+                    <p class="text-2xl md:text-3xl font-bold mt-1">{{ session_time|default:"9:00 PM - 10:00 PM" }}</p>
+                    <p class="text-orange-100 text-xs md:text-sm mt-1">Every week, we save together.</p>
+                </div>
+                <div class="bg-white/20 p-4 rounded-full hidden sm:block">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm md:text-base font-bold text-gray-800 mb-3 px-1">Overview</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <p class="text-xs text-gray-500 flex items-center gap-1"><span class="text-orange-400">👤</span> Total Members</p>
+                        <p class="text-xl md:text-2xl font-bold text-gray-900 mt-1">{{ total_members|default:"0" }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <p class="text-xs text-gray-500 flex items-center gap-1"><span class="text-orange-400">💰</span> Total Savings</p>
+                        <p class="text-xl md:text-2xl font-bold text-gray-900 mt-1">₹{{ total_investment|default:"0" }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <p class="text-xs text-gray-500 flex items-center gap-1"><span class="text-orange-400">📄</span> Week Collection</p>
+                        <p class="text-xl md:text-2xl font-bold text-gray-900 mt-1">₹{{ this_week_collection|default:"0" }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <p class="text-xs text-gray-500 flex items-center gap-1"><span class="text-orange-400">🏦</span> Group Balance</p>
+                        <p class="text-xl md:text-2xl font-bold text-gray-900 mt-1">₹{{ group_balance|default:"0" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm md:text-base font-bold text-gray-800 mb-4 px-1">Quick Actions</h3>
+                <div class="flex justify-between items-center text-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <a href="{% url 'add_member' %}" class="flex flex-col items-center gap-2 group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
+                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span class="text-xs md:text-sm font-medium text-gray-600">Add Member</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center gap-2 group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
+                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        </div>
+                        <span class="text-xs md:text-sm font-medium text-gray-600">Attendance</span>
+                    </a>
+                    <a href="{% url 'members_payable' %}" class="flex flex-col items-center gap-2 group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
+                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="text-xs md:text-sm font-medium text-gray-600">Collect Pay</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center gap-2 group">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition shadow-sm">
+                            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                        <span class="text-xs md:text-sm font-medium text-gray-600">View Users</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="space-y-6">
+            
+            <div class="bg-orange-50 rounded-2xl p-6 border border-orange-100 shadow-sm h-full flex flex-col justify-center">
+                <p class="text-sm md:text-base font-semibold text-gray-600">Total Payable <span class="font-normal">(This Week)</span></p>
+                <p class="text-4xl font-extrabold text-gray-900 mt-2">₹{{ total_payable|default:"0" }}</p>
+                
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-6 mb-3">
+                    <div class="bg-orange-500 h-2.5 rounded-full" style="width: {{ collection_progress_percent|default:'0' }}%"></div>
+                </div>
+                <div class="flex justify-between text-xs md:text-sm font-medium">
+                    <span class="text-gray-500">Collected: ₹{{ collected_amount|default:"0" }}</span>
+                    <span class="text-gray-900">Pending: ₹{{ pending_amount|default:"0" }}</span>
+                </div>
+            </div>
+
+            <div class="flex md:flex-col lg:flex-col gap-3">
+                <div class="bg-white flex-1 p-4 rounded-xl shadow-sm text-center border border-gray-100 flex justify-between items-center md:text-left">
+                    <div class="hidden md:block">
+                        <p class="text-xs text-gray-500 uppercase tracking-wide">Absent Members</p>
+                        <p class="text-xs text-gray-400">Total Due: ₹{{ absent_fines_total|default:"0" }}</p>
+                    </div>
+                    <div class="md:hidden">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Absent</p>
+                        <p class="text-xs text-gray-400">₹{{ absent_fines_total|default:"0" }}</p>
+                    </div>
+                    <p class="text-xl md:text-2xl font-bold text-gray-900">{{ absent_members_count|default:"0" }}</p>
+                </div>
+
+                <div class="bg-white flex-1 p-4 rounded-xl shadow-sm text-center border border-gray-100 flex justify-between items-center md:text-left">
+                    <div class="hidden md:block">
+                        <p class="text-xs text-gray-500 uppercase tracking-wide">Late Payments</p>
+                        <p class="text-xs text-gray-400">Total Due: ₹{{ late_fines_total|default:"0" }}</p>
+                    </div>
+                    <div class="md:hidden">
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wide">Late</p>
+                        <p class="text-xs text-gray-400">₹{{ late_fines_total|default:"0" }}</p>
+                    </div>
+                    <p class="text-xl md:text-2xl font-bold text-gray-900">{{ late_payments_count|default:"0" }}</p>
+                </div>
+
+                <div class="bg-white flex-1 p-4 rounded-xl shadow-sm text-center border border-gray-100 flex justify-between items-center md:text-left md:bg-red-50">
+                    <div class="hidden md:block">
+                        <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Total Fines</p>
+                        <p class="text-xs text-red-400">Incl. Late + Absent</p>
+                    </div>
+                    <div class="md:hidden">
+                        <p class="text-[10px] font-bold text-red-600 uppercase tracking-wide">Fines</p>
+                        <p class="text-[9px] text-red-400">Total</p>
+                    </div>
+                    <p class="text-xl md:text-2xl font-bold text-red-600">₹{{ total_fine|default:"0" }}</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div class="flex justify-around items-center p-3 relative">
+            <a href="#" class="text-orange-500 flex flex-col items-center"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg><span class="text-[10px] mt-1 font-bold">Home</span></a>
+            <a href="#" class="text-gray-400 hover:text-orange-500 flex flex-col items-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><span class="text-[10px] mt-1">Members</span></a>
+            
+            <div class="relative -top-5">
+                <a href="#" class="block bg-orange-500 text-white p-3 rounded-full shadow-lg border-4 border-gray-50 hover:scale-105 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </a>
+            </div>
+
+            <a href="#" class="text-gray-400 hover:text-orange-500 flex flex-col items-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-[10px] mt-1">Activity</span></a>
+            <a href="#" class="text-gray-400 hover:text-orange-500 flex flex-col items-center"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg><span class="text-[10px] mt-1">Profile</span></a>
+        </div>
+    </div>
+</div>
+{% endblock %}

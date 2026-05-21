@@ -1,0 +1,63 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+
+<h2 class="text-2xl font-bold text-orange-600 mb-4">My Passbook</h2>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+    <div class="bg-white p-4 rounded shadow">
+        <p class="text-gray-500">Total Investment</p>
+        <p class="text-xl font-bold text-green-600">₹{{ total_investment }}</p>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow">
+        <p class="text-gray-500">Total Fine</p>
+        <p class="text-xl font-bold text-red-600">₹{{ total_fine }}</p>
+    </div>
+
+    <div class="bg-orange-500 text-white p-4 rounded shadow">
+        <p>Balance</p>
+        <p class="text-2xl font-bold">₹{{ balance }}</p>
+    </div>
+
+</div>
+
+<!-- Transaction History -->
+<div class="bg-white p-4 rounded shadow overflow-x-auto">
+
+    <h3 class="font-semibold mb-3">Transaction History</h3>
+
+    <table class="w-full text-left">
+        <thead>
+            <tr class="border-b">
+                <th class="p-2">Date</th>
+                <th class="p-2">Type</th>
+                <th class="p-2">Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for t in transactions %}
+            <tr class="border-b">
+                <td class="p-2">{{ t.created_at }}</td>
+
+                <td class="p-2">
+                    {% if t.type == 'investment' %}
+                    <span class="text-green-600">Investment</span>
+                    {% else %}
+                    <span class="text-red-600">Fine</span>
+                    {% endif %}
+                </td>
+
+                <td class="p-2 font-semibold">₹{{ t.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

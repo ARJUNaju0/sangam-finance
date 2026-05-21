@@ -1,0 +1,102 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 font-sans">
+    
+    <div class="text-center mb-10">
+        <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+        </div>
+        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Set Up Your Sangam</h2>
+        <p class="text-gray-500 mt-2">Welcome aboard, Admin! Let's configure your savings group.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+        <form method="post" action="{% url 'create_sangam' %}" class="space-y-8">
+            {% csrf_token %}
+            
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">1. Group Profile</h3>
+                
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Sangam Name</label>
+                        <input type="text" name="sangam_name" required placeholder="e.g., Thala Friends Savings" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Description <span class="text-gray-400 font-normal">(Optional)</span></label>
+                        <textarea name="description" rows="2" placeholder="What is the goal of this Sangam?" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Choose an Icon</label>
+                        <div class="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="icon" value="group" class="peer sr-only" checked>
+                                <div class="border border-gray-200 rounded-xl p-3 flex justify-center text-gray-400 peer-checked:border-2 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:text-orange-500 hover:bg-gray-50 transition">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="icon" value="briefcase" class="peer sr-only">
+                                <div class="border border-gray-200 rounded-xl p-3 flex justify-center text-gray-400 peer-checked:border-2 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:text-orange-500 hover:bg-gray-50 transition">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path><path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path></svg>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="icon" value="shield" class="peer sr-only">
+                                <div class="border border-gray-200 rounded-xl p-3 flex justify-center text-gray-400 peer-checked:border-2 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:text-orange-500 hover:bg-gray-50 transition">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">2. Collection Rules</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Weekly Amount (₹)</label>
+                        <input type="number" name="weekly_amount" required placeholder="e.g. 250" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Late Fine (₹ / day)</label>
+                        <input type="number" name="late_fine" required placeholder="e.g. 10" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition">
+                    </div>
+
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Meeting Day</label>
+                        <select name="meeting_day" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 appearance-none focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition">
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                            <option value="Monday">Monday</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-4 text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Meeting Time</label>
+                        <input type="time" name="meeting_time" required class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="w-full md:w-auto md:px-12 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg transition duration-200 flex justify-center items-center gap-2 md:float-right">
+                    Save & Open Dashboard
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+            
+            <div class="clear-both"></div>
+        </form>
+    </div>
+</div>
+{% endblock %}

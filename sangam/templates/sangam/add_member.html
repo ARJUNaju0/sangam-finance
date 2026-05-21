@@ -1,0 +1,67 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-6 md:py-8 px-4 sm:px-6 font-sans">
+    
+    <div class="flex items-center gap-4 mb-6 md:mb-8">
+        <a href="{% url 'dashboard' %}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:text-orange-500 hover:border-orange-500 shadow-sm transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        </a>
+        <div>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Add Member</h2>
+            <p class="text-sm text-gray-500 mt-1">Register a new user to the Sangam.</p>
+        </div>
+    </div>
+
+    <form method="post" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mb-5 md:mb-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Full Name</label>
+                <input name="name" required placeholder="e.g. Arjun Chelakkad" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-colors">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Phone (Login ID)</label>
+                <input name="phone" required placeholder="e.g. 9876543210" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-colors">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mb-5 md:mb-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Password</label>
+                <input name="password" type="password" required placeholder="Create a secure password" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-colors">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
+                <div class="relative">
+                    <select name="role" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 appearance-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-colors cursor-pointer">
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Notes (Optional)</label>
+            <textarea name="notes" rows="3" placeholder="Any remarks or legacy data notes..." class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-colors resize-none"></textarea>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row gap-3 items-center justify-end border-t border-gray-100 pt-6">
+            <a href="{% url 'dashboard' %}" class="w-full sm:w-auto px-6 py-3 text-gray-500 hover:text-gray-800 font-bold text-center transition">Cancel</a>
+            
+            <button type="submit" class="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl shadow-md transition duration-200 flex justify-center items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                Create Member
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
