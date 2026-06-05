@@ -1,0 +1,550 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-[#F5F3EF] pb-24 md:pb-8">
+
+    <!-- HEADER -->
+    <div class="bg-white border-b border-gray-100 sticky top-14 z-30">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-amber-100 flex items-center justify-center text-gray-600 hover:text-amber-700 transition font-bold text-base">‹</a>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold">{{ group.name }}</p>
+                    <h1 class="text-xl font-black text-gray-900 leading-tight">Ledger & Accounts</h1>
+                </div>
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="flex bg-gray-100 p-1 rounded-xl shrink-0">
+                <button onclick="switchView('accounts')" id="btn-accounts"
+                    class="px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-gray-900 transition-all">
+                    Accounts
+                </button>
+                <button onclick="switchView('ledger')" id="btn-ledger"
+                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-900 transition-all">
+                    All Transactions
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter row (only when no live session) -->
+        {% if not active_session %}
+        <div id="filter-row" class="max-w-7xl mx-auto px-4 md:px-6 py-2.5 flex items-center gap-2 overflow-x-auto border-t border-gray-100">
+            <button onclick="filterMembers('all')" id="tab-all"
+                class="filter-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gray-900 text-white transition-all">All</button>
+            <button onclick="filterMembers('unpaid')" id="tab-unpaid"
+                class="filter-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">Unpaid</button>
+            <button onclick="filterMembers('paid')" id="tab-paid"
+                class="filter-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all">Paid</button>
+            <div class="ml-auto flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-1.5 w-44">
+                <span class="text-gray-400 text-xs">🔍</span>
+                <input type="text" id="memberSearch" placeholder="Search member..."
+                    oninput="searchMembers(this.value)"
+                    class="bg-transparent text-xs text-gray-700 outline-none w-full">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-5 grid grid-cols-1 xl:grid-cols-4 gap-5">
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <div class="xl:col-span-3">
+
+            <!-- ===== ACCOUNTS VIEW ===== -->
+            <div id="view-accounts">
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Expected</p>
+                        <p class="text-xl font-black text-gray-900 mt-1">₹{{ expected_collection }}</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Collected</p>
+                        <p class="text-xl font-black text-emerald-600 mt-1">₹{{ collected_amount }}</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Pending</p>
+                        <p class="text-xl font-black text-red-500 mt-1">₹{{ pending_amount }}</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                        <p class="text-[10px] uppercase text-gray-400 font-bold tracking-widest">Fines</p>
+                        <p class="text-xl font-black text-amber-500 mt-1">₹{{ total_fine }}</p>
+                    </div>
+                </div>
+
+                {% if active_session %}
+                <!-- ===== LIVE SESSION FORM ===== -->
+                <div class="mb-4 bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <p class="text-emerald-800 font-black text-sm flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Live Collection Mode
+                        </p>
+                        <p class="text-xs text-emerald-600 mt-0.5">Mark attendance and verify payments below.</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase">Target</p>
+                        <p class="text-lg font-black text-emerald-700">₹{{ expected_collection }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'save_and_close_session' %}">
+                    {% csrf_token %}
+                    <div class="space-y-3">
+                        {% for member in members %}
+                        <div class="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+                            <div class="flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
+
+                                <!-- Name + info -->
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0
+                                        {% if member.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                        {{ member.name|slice:":2"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <p class="font-bold text-gray-900 text-sm">{{ member.name }}</p>
+                                            <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded
+                                                {% if member.role == 'admin' %}bg-purple-100 text-purple-600{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                                {{ member.role }}
+                                            </span>
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5 mt-1">
+                                            <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-bold">Base ₹{{ group.weekly_amount }}</span>
+                                            {% if member.previous_due > 0 %}
+                                            <span class="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">Past ₹{{ member.previous_due }}</span>
+                                            {% endif %}
+                                            {% if member.fine_amount > 0 %}
+                                            <span class="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-bold">Fine ₹{{ member.fine_amount }}</span>
+                                            {% endif %}
+                                            <span class="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-100">Total ₹{{ member.amount_due }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Controls -->
+                                <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                                    <div class="flex bg-gray-100 rounded-xl p-1 border border-gray-200">
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="status_{{ member.id }}" value="present" checked class="peer sr-only"
+                                                onchange="updateAmount('{{ member.id }}', {{ member.amount_due }}, 0, 'present')">
+                                            <div class="px-3 py-1.5 text-center rounded-lg text-[11px] font-bold text-gray-500 peer-checked:bg-emerald-500 peer-checked:text-white transition-all uppercase">Present</div>
+                                        </label>
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="status_{{ member.id }}" value="late" class="peer sr-only"
+                                                onchange="updateAmount('{{ member.id }}', {{ member.amount_due }}, {{ group.late_fine }}, 'late')">
+                                            <div class="px-3 py-1.5 text-center rounded-lg text-[11px] font-bold text-gray-500 peer-checked:bg-amber-500 peer-checked:text-white transition-all uppercase">Late</div>
+                                        </label>
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="status_{{ member.id }}" value="absent" class="peer sr-only"
+                                                onchange="updateAmount('{{ member.id }}', {{ member.amount_due }}, 0, 'absent')">
+                                            <div class="px-3 py-1.5 text-center rounded-lg text-[11px] font-bold text-gray-500 peer-checked:bg-red-500 peer-checked:text-white transition-all uppercase">Absent</div>
+                                        </label>
+                                    </div>
+                                    <div class="relative w-full sm:w-28 shrink-0">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₹</span>
+                                        <input type="number" id="input-amount-{{ member.id }}" name="amount_{{ member.id }}"
+                                            value="{{ member.amount_due }}" min="0" step="1"
+                                            class="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 font-bold text-gray-900 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none transition-all">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 flex justify-end">
+                        <button type="submit" onclick="return confirm('Save attendance and close session?')"
+                            class="bg-gray-900 hover:bg-gray-800 text-white font-black px-8 py-3.5 rounded-xl transition flex items-center gap-2 text-sm shadow-lg">
+                            ✅ Save & Close Session
+                        </button>
+                    </div>
+                </form>
+
+                {% else %}
+                <!-- ===== MEMBER CARDS (closed session) ===== -->
+                <div id="membersList" class="space-y-3">
+                    {% for member in members %}
+                    <div class="member-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-amber-200"
+                         data-paid="{{ member.paid|yesno:'true,false' }}"
+                         data-name="{{ member.name|lower }}">
+
+                        <!-- Collapsed header row -->
+                        <button onclick="toggleMember('member-{{ member.id }}')"
+                            class="w-full px-5 py-4 flex items-center justify-between text-left group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0
+                                    {% if member.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                    {{ member.name|slice:":2"|upper }}
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="font-bold text-gray-900 text-sm group-hover:text-amber-700 transition">{{ member.name }}</p>
+                                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded
+                                            {% if member.role == 'admin' %}bg-purple-100 text-purple-600{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                            {{ member.role }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        {% if member.status == 'present' %}
+                                        <span class="text-[10px] font-bold text-emerald-600">✓ Present</span>
+                                        {% elif member.status == 'late' %}
+                                        <span class="text-[10px] font-bold text-amber-600">⏰ Late</span>
+                                        {% elif member.status == 'absent' %}
+                                        <span class="text-[10px] font-bold text-red-500">✗ Absent</span>
+                                        {% else %}
+                                        <span class="text-[10px] font-bold text-gray-400">— No session</span>
+                                        {% endif %}
+                                        {% if member.previous_due > 0 %}
+                                        <span class="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold">Past ₹{{ member.previous_due }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right hidden sm:block">
+                                    {% if member.paid %}
+                                    <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase">Paid ₹{{ member.amount_paid }}</span>
+                                    {% else %}
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">Due</p>
+                                    <p class="text-sm font-black text-red-500">₹{{ member.amount_due }}</p>
+                                    {% endif %}
+                                </div>
+                                <span id="chevron-member-{{ member.id }}" class="text-gray-300 group-hover:text-amber-500 transition text-xs">▼</span>
+                            </div>
+                        </button>
+
+                        <!-- Expanded detail panel -->
+                        <div id="member-{{ member.id }}" class="hidden border-t border-gray-100 bg-gray-50/50">
+                            <div class="p-5 space-y-4">
+
+                                <!-- 4 stat cards -->
+                                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                    <div class="bg-white rounded-xl p-3.5 border border-gray-100">
+                                        <p class="text-[10px] uppercase text-gray-400 font-bold">Weekly</p>
+                                        <p class="text-lg font-black text-gray-900 mt-0.5">₹{{ member.weekly_amount }}</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-3.5 border border-gray-100">
+                                        <p class="text-[10px] uppercase text-gray-400 font-bold">Fine</p>
+                                        <p class="text-lg font-black text-amber-500 mt-0.5">₹{{ member.fine_amount }}</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-3.5 border border-gray-100">
+                                        <p class="text-[10px] uppercase text-gray-400 font-bold">Paid</p>
+                                        <p class="text-lg font-black text-emerald-600 mt-0.5">₹{{ member.amount_paid }}</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-3.5 border border-gray-100">
+                                        <p class="text-[10px] uppercase text-gray-400 font-bold">Balance Due</p>
+                                        <p class="text-lg font-black text-red-500 mt-0.5">₹{{ member.amount_due }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Payment breakdown -->
+                                <div class="bg-white rounded-2xl p-4 border border-gray-100">
+                                    <h4 class="font-black text-gray-900 text-sm mb-3">Payment Breakdown</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Weekly Contribution</span>
+                                            <span class="font-bold">₹{{ member.weekly_amount }}</span>
+                                        </div>
+                                        {% if member.fine_amount > 0 %}
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Fine</span>
+                                            <span class="font-bold text-amber-500">+ ₹{{ member.fine_amount }}</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if member.previous_due > 0 %}
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Previous Due</span>
+                                            <span class="font-bold text-red-500">+ ₹{{ member.previous_due }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="border-t border-gray-100 pt-2 flex justify-between">
+                                            <span class="font-black text-gray-900">Total Payable</span>
+                                            <span class="font-black text-gray-900 text-base">₹{{ member.amount_due }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Attendance stats -->
+                                <div class="bg-white rounded-2xl p-4 border border-gray-100">
+                                    <h4 class="font-black text-gray-900 text-sm mb-3">All-Time Attendance</h4>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                                            <p class="text-xl font-black text-emerald-700">{{ member.session_count }}</p>
+                                            <p class="text-[10px] font-bold text-emerald-600 uppercase mt-0.5">Present</p>
+                                        </div>
+                                        <div class="bg-amber-50 rounded-xl p-3 text-center">
+                                            <p class="text-xl font-black text-amber-700">{{ member.late_payment_count }}</p>
+                                            <p class="text-[10px] font-bold text-amber-600 uppercase mt-0.5">Late</p>
+                                        </div>
+                                        <div class="bg-red-50 rounded-xl p-3 text-center">
+                                            <p class="text-xl font-black text-red-700">{{ member.absent_count }}</p>
+                                            <p class="text-[10px] font-bold text-red-600 uppercase mt-0.5">Absent</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- All-time contribution -->
+                                <div class="bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs text-gray-400 font-bold uppercase">Total Contributed (All Time)</p>
+                                        <p class="text-2xl font-black text-emerald-600 mt-0.5">₹{{ member.total_paid }}</p>
+                                    </div>
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-lg">💰</div>
+                                </div>
+
+                                <!-- Transaction history -->
+                                <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                                    <div class="px-4 py-3 border-b border-gray-100">
+                                        <h4 class="font-black text-gray-900 text-sm">Transaction History</h4>
+                                    </div>
+                                    {% if member.transactions %}
+                                    <div class="divide-y divide-gray-50 max-h-64 overflow-y-auto">
+                                        {% for txn in member.transactions %}
+                                        <div class="px-4 py-3 flex items-center justify-between">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs
+                                                    {% if txn.type == 'fine' %}bg-amber-100{% else %}bg-emerald-100{% endif %}">
+                                                    {% if txn.type == 'fine' %}⚠️{% else %}💳{% endif %}
+                                                </div>
+                                                <div>
+                                                    <p class="text-xs font-bold text-gray-900 capitalize">{{ txn.type }}</p>
+                                                    <p class="text-[10px] text-gray-400">{{ txn.session.date|date:"d M Y" }}</p>
+                                                </div>
+                                            </div>
+                                            <p class="font-black text-sm {% if txn.type == 'fine' %}text-amber-500{% else %}text-emerald-600{% endif %}">
+                                                ₹{{ txn.amount }}
+                                            </p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <div class="py-6 text-center text-gray-400 text-xs">No transactions yet.</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="flex gap-2">
+                                    <a href="{% url 'member_detail' member.id %}"
+                                        class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl font-bold text-xs transition">
+                                        View Full Profile →
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-10 bg-white rounded-2xl border border-gray-100">
+                        <p class="text-gray-400 font-medium text-sm">No members found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- ===== LEDGER / ALL TRANSACTIONS VIEW ===== -->
+            <div id="view-ledger" class="hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                        <h3 class="font-black text-gray-900 text-sm">All Transactions</h3>
+                        <span class="text-xs text-gray-400 font-medium">{{ global_transactions.count }} records</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase tracking-widest">
+                                <tr>
+                                    <th class="px-5 py-3 font-bold">Date</th>
+                                    <th class="px-5 py-3 font-bold">Member</th>
+                                    <th class="px-5 py-3 font-bold">Session</th>
+                                    <th class="px-5 py-3 font-bold">Type</th>
+                                    <th class="px-5 py-3 font-bold text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                {% for tx in global_transactions %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-5 py-3">
+                                        <p class="text-sm font-bold text-gray-800">{{ tx.created_at|date:"d M Y" }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ tx.created_at|time:"h:i A" }}</p>
+                                    </td>
+                                    <td class="px-5 py-3">
+                                        <p class="text-sm font-bold text-gray-900">{{ tx.user.name|default:tx.user.phone }}</p>
+                                        <p class="text-[10px] text-gray-400">{{ tx.user.phone }}</p>
+                                    </td>
+                                    <td class="px-5 py-3 text-xs text-gray-500 font-medium">
+                                        {{ tx.session.date|date:"d M Y" }}
+                                    </td>
+                                    <td class="px-5 py-3">
+                                        {% if tx.type == 'investment' %}
+                                        <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase">Investment</span>
+                                        {% elif tx.type == 'fine' %}
+                                        <span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase">Fine</span>
+                                        {% else %}
+                                        <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-lg uppercase">{{ tx.type }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-5 py-3 text-right">
+                                        <p class="font-black text-sm {% if tx.type == 'fine' %}text-amber-500{% else %}text-emerald-600{% endif %}">
+                                            ₹{{ tx.amount }}
+                                        </p>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="p-10 text-center text-gray-400 text-sm">No transactions recorded yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== SIDEBAR ===== -->
+        <div class="space-y-4">
+
+            <!-- Collection progress -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 class="font-black text-gray-900 text-sm mb-3">Collection Progress</h3>
+                <div class="mb-3">
+                    <div class="flex justify-between text-xs mb-1.5">
+                        <span class="text-gray-500">This week</span>
+                        <span class="font-black text-gray-900">{{ collection_progress }}%</span>
+                    </div>
+                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ collection_progress }}%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Collected</span>
+                        <span class="font-bold text-emerald-600">₹{{ collected_amount }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Remaining</span>
+                        <span class="font-bold text-red-500">₹{{ pending_amount }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Members</span>
+                        <span class="font-bold text-gray-800">{{ total_members }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="bg-gray-900 rounded-2xl p-5">
+                <h3 class="font-black text-white text-sm mb-1">Reminders</h3>
+                <p class="text-xs text-gray-400 mb-4 leading-relaxed">Send a reminder to members who haven't paid yet.</p>
+                <button onclick="return confirm('Send reminders to all pending members?')"
+                    class="block w-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition text-center">
+                    🔔 Send Reminders
+                </button>
+            </div>
+
+            <!-- Quick member count breakdown -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <h3 class="font-black text-gray-900 text-sm mb-3">This Session</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center bg-emerald-50 rounded-xl px-3 py-2">
+                        <span class="text-xs font-bold text-emerald-700 uppercase">Paid</span>
+                        <span class="font-black text-emerald-600 text-sm">
+                            {{ members|length }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center bg-amber-50 rounded-xl px-3 py-2">
+                        <span class="text-xs font-bold text-amber-700 uppercase">Total Fines</span>
+                        <span class="font-black text-amber-600 text-sm">₹{{ total_fine }}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-50 rounded-xl px-3 py-2">
+                        <span class="text-xs font-bold text-gray-600 uppercase">Sessions Done</span>
+                        <span class="font-black text-gray-700 text-sm">
+                            {% with closed_count=group|default:0 %}
+                            —
+                            {% endwith %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function updateAmount(memberId, baseDue, lateFine, status) {
+    const input = document.getElementById('input-amount-' + memberId);
+    if (!input) return;
+    if (status === 'present') input.value = baseDue;
+    else if (status === 'late') input.value = parseFloat(baseDue) + parseFloat(lateFine);
+    else if (status === 'absent') input.value = 0;
+}
+
+function switchView(view) {
+    const vAccounts = document.getElementById('view-accounts');
+    const vLedger = document.getElementById('view-ledger');
+    const filterRow = document.getElementById('filter-row');
+    const bAccounts = document.getElementById('btn-accounts');
+    const bLedger = document.getElementById('btn-ledger');
+    const activeClass = 'px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-gray-900 transition-all';
+    const inactiveClass = 'px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-gray-900 transition-all';
+
+    if (view === 'accounts') {
+        vAccounts.classList.remove('hidden');
+        vLedger.classList.add('hidden');
+        if (filterRow) filterRow.classList.remove('hidden');
+        bAccounts.className = activeClass;
+        bLedger.className = inactiveClass;
+    } else {
+        vAccounts.classList.add('hidden');
+        vLedger.classList.remove('hidden');
+        if (filterRow) filterRow.classList.add('hidden');
+        bLedger.className = activeClass;
+        bAccounts.className = inactiveClass;
+    }
+}
+
+function filterMembers(type) {
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.className = 'filter-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all';
+    });
+    document.getElementById('tab-' + type).className =
+        'filter-tab whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gray-900 text-white transition-all';
+
+    document.querySelectorAll('.member-card').forEach(card => {
+        const paid = card.dataset.paid === 'true';
+        if (type === 'all') card.style.display = '';
+        else if (type === 'paid') card.style.display = paid ? '' : 'none';
+        else if (type === 'unpaid') card.style.display = !paid ? '' : 'none';
+    });
+}
+
+function searchMembers(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.member-card').forEach(card => {
+        card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+    });
+}
+
+function toggleMember(id) {
+    const panel = document.getElementById(id);
+    const chevron = document.getElementById('chevron-' + id);
+    if (panel && chevron) {
+        const isHidden = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden', !isHidden);
+        chevron.textContent = isHidden ? '▲' : '▼';
+        chevron.classList.toggle('text-amber-500', isHidden);
+        chevron.classList.toggle('text-gray-300', !isHidden);
+    }
+}
+</script>
+{% endblock %}

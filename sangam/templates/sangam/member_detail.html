@@ -1,0 +1,237 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-[#F5F3EF] pb-10">
+
+    <!-- HEADER -->
+    <div class="bg-white border-b border-gray-100 sticky top-14 z-30">
+        <div class="max-w-3xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-1.5 text-gray-500 hover:text-amber-600 font-bold text-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back
+            </a>
+            <p class="text-sm font-black text-gray-800">Member Details</p>
+            {% if request.user.role == 'admin' or request.user.is_staff %}
+            <div class="flex items-center gap-2">
+                {% if member.role == 'admin' %}
+                <a href="{% url 'remove_admin' member.id %}" onclick="return confirm('Remove admin rights?')"
+                    class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                    Remove Admin
+                </a>
+                {% else %}
+                <a href="{% url 'make_admin' member.id %}"
+                    class="text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition">
+                    Make Admin
+                </a>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="w-16"></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-4 md:px-6 py-5 space-y-4">
+
+        <!-- PROFILE CARD -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-start gap-4">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shrink-0
+                    {% if member.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {{ member.name|slice:":2"|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="text-xl font-black text-gray-900">{{ member.name }}</h2>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase
+                            {% if member.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ member.role }}
+                        </span>
+                        {% if member.is_active %}
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase">Active</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-red-100 text-red-700 uppercase">Inactive</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">📞 {{ member.phone }}</p>
+                    {% if member.username %}<p class="text-xs text-gray-400 mt-0.5">@{{ member.username }}</p>{% endif %}
+                    <p class="text-xs text-gray-400 mt-0.5">Joined {{ member.date_joined|date:"d M Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINANCIAL SUMMARY -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center">
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Total Paid</p>
+                <p class="text-xl font-black text-emerald-600 mt-1">₹{{ total_paid }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center">
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Total Fines</p>
+                <p class="text-xl font-black text-amber-500 mt-1">₹{{ total_fines }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center">
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Pending Due</p>
+                <p class="text-xl font-black text-red-500 mt-1">₹{{ pending_due }}</p>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm text-center">
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Sessions</p>
+                <p class="text-xl font-black text-gray-900 mt-1">{{ total_sessions }}</p>
+            </div>
+        </div>
+
+        <!-- ATTENDANCE STATS -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-black text-gray-900 text-sm mb-4">Attendance Record</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-black text-emerald-600">{{ present_count }}</p>
+                    <p class="text-[10px] font-bold text-emerald-700 uppercase mt-1">Present</p>
+                </div>
+                <div class="bg-amber-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-black text-amber-500">{{ late_count }}</p>
+                    <p class="text-[10px] font-bold text-amber-700 uppercase mt-1">Late</p>
+                </div>
+                <div class="bg-red-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-black text-red-500">{{ absent_count }}</p>
+                    <p class="text-[10px] font-bold text-red-700 uppercase mt-1">Absent</p>
+                </div>
+            </div>
+
+            {% if total_sessions > 0 %}
+            <div class="mt-4">
+                <div class="flex justify-between text-xs text-gray-500 mb-1.5">
+                    <span>Attendance Rate</span>
+                    <span class="font-bold text-gray-800">{{ attendance_rate }}%</span>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 rounded-full" style="width: {{ attendance_rate }}%"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ABSENT FINE HISTORY (if any absences) -->
+        {% if absent_records %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="font-black text-gray-900 text-sm">Absence Fine History</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Fines accrued from absent sessions.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-500 text-xs">
+                        <tr>
+                            <th class="px-5 py-3 text-left font-bold uppercase tracking-wide">Session Date</th>
+                            <th class="px-5 py-3 text-left font-bold uppercase tracking-wide">Status</th>
+                            <th class="px-5 py-3 text-right font-bold uppercase tracking-wide">Fine</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for record in absent_records %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-3 text-gray-700 font-medium">{{ record.session.date|date:"d M Y" }}</td>
+                            <td class="px-5 py-3">
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase
+                                    {% if record.status == 'absent' %}bg-red-100 text-red-600
+                                    {% elif record.status == 'late' %}bg-amber-100 text-amber-600
+                                    {% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-right font-black {% if record.fine > 0 %}text-amber-500{% else %}text-gray-400{% endif %}">
+                                {% if record.fine > 0 %}₹{{ record.fine }}{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- PAYMENT HISTORY -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-black text-gray-900 text-sm">Payment History</h3>
+                <span class="text-xs text-gray-400 font-medium">{{ transactions.count }} transactions</span>
+            </div>
+            <div class="divide-y divide-gray-50">
+                {% for txn in transactions %}
+                <div class="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm
+                            {% if txn.type == 'fine' %}bg-amber-100{% else %}bg-emerald-100{% endif %}">
+                            {% if txn.type == 'fine' %}⚠️{% else %}💳{% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-900 capitalize">{{ txn.type }}</p>
+                            <p class="text-xs text-gray-400">{{ txn.session.date|date:"d M Y" }} · {{ txn.created_at|time:"h:i A" }}</p>
+                        </div>
+                    </div>
+                    <p class="font-black text-sm {% if txn.type == 'fine' %}text-amber-500{% else %}text-emerald-600{% endif %}">
+                        ₹{{ txn.amount }}
+                    </p>
+                </div>
+                {% empty %}
+                <div class="py-8 text-center text-gray-400 text-sm">No transactions yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SESSION-BY-SESSION DETAIL -->
+        {% if session_records %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="font-black text-gray-900 text-sm">All Sessions</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Week-by-week breakdown.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-500 text-xs">
+                        <tr>
+                            <th class="px-5 py-3 text-left font-bold uppercase">Date</th>
+                            <th class="px-5 py-3 text-left font-bold uppercase">Attendance</th>
+                            <th class="px-5 py-3 text-right font-bold uppercase">Fine</th>
+                            <th class="px-5 py-3 text-right font-bold uppercase">Paid</th>
+                            <th class="px-5 py-3 text-right font-bold uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for row in session_records %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-5 py-3 font-medium text-gray-700">{{ row.date|date:"d M Y" }}</td>
+                            <td class="px-5 py-3">
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase
+                                    {% if row.status == 'absent' %}bg-red-100 text-red-600
+                                    {% elif row.status == 'late' %}bg-amber-100 text-amber-600
+                                    {% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                                    {{ row.status }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-right font-bold {% if row.fine > 0 %}text-amber-500{% else %}text-gray-400{% endif %}">
+                                {% if row.fine > 0 %}₹{{ row.fine }}{% else %}—{% endif %}
+                            </td>
+                            <td class="px-5 py-3 text-right font-bold text-gray-700">
+                                {% if row.amount_paid %}₹{{ row.amount_paid }}{% else %}—{% endif %}
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                {% if row.paid %}
+                                <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase">✓ Paid</span>
+                                {% else %}
+                                <span class="bg-red-50 text-red-500 text-[10px] font-bold px-2 py-1 rounded-lg uppercase">Unpaid</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

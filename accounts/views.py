@@ -6,66 +6,82 @@ from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from accounts.models import User
 from django.contrib.auth import get_user_model
-
+from django.db.models import Q
 
 User = get_user_model()
 
 
 def login_view(request):
 
-    if request.method == 'POST':
+    if request.method == "POST":
 
-        identifier = request.POST.get('identifier')
-        password = request.POST.get('password')
+        login_id = request.POST.get("login_id")
+        password = request.POST.get("password")
 
-        user_obj = User.objects.filter(
-            username=identifier
-        ).first()
+        try:
 
-        if not user_obj:
-            user_obj = User.objects.filter(
-                phone=identifier
-            ).first()
-
-        if user_obj:
-
-            user = authenticate(
-                request,
-                username=user_obj.username,
-                password=password
+            user = User.objects.get(
+                Q(username=login_id) |
+                Q(phone=login_id)
             )
-            
 
-            if user:
-                login(request, user)
-                messages.success(request, "Logged in successfully")
-                return redirect('dashboard')
-        messages.error(request, "Invalid credentials")
-                
-                
-    return render(request, 'accounts/login.html')
+        except User.DoesNotExist:
 
+            messages.error(
+                request,
+                "Invalid credentials"
+            )
+
+            return redirect("login")
+
+        if user.check_password(password):
+
+            login(request, user)
+            messages.success(
+                request,
+                "Logged in successfully"
+            )
+
+            return redirect("dashboard")
+
+        messages.error(
+            request,
+            "Invalid credentials"
+        )
+
+    return render(
+        request,
+        "accounts/login.html"
+    )
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 def register(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
 
-        if User.objects.filter(phone=phone).exists():
-            return HttpResponse("User already exists")
+    if User.objects.exists():
 
-        user = User.objects.create(
-            name=name,
-            phone=phone,
-            password=make_password(password),
-            role='admin'
+        return redirect("login")
+
+    if request.method == "POST":
+
+        User.objects.create_user(
+            username=request.POST.get("username"),
+            phone=request.POST.get("phone"),
+            password=request.POST.get("password"),
+            name=request.POST.get("name"),
+            role="admin",
+            is_staff=True
         )
 
-        login(request, user)
-        return redirect('dashboard')
+        messages.success(
+            request,
+            "Admin account created successfully"
+        )
 
-    return render(request, 'accounts/register.html')
+        return redirect("login")
+
+    return render(
+        request,
+        "accounts/register.html"
+    )

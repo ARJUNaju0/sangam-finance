@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-
+from accounts.models import User
 
 # =========================================================
 # GROUP / SANGAM
@@ -9,21 +9,45 @@ from django.conf import settings
 
 class Group(models.Model):
 
+    WEEK_DAYS = [
+        ('Sunday', 'Sunday'),
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+    ]
+
     name = models.CharField(max_length=100)
 
-    meeting_day = models.CharField(max_length=20)
+    description = models.TextField(blank=True, null=True)
 
-    start_time = models.IntegerField()
+    meeting_day = models.CharField(
+        max_length=20,
+        choices=WEEK_DAYS,
+        default='Sunday'
+    )
 
-    end_time = models.IntegerField()
+    start_time = models.TimeField()
 
-    weekly_amount = models.FloatField()
+    end_time = models.TimeField(blank=True, null=True)
 
-    late_fine = models.FloatField()
+    weekly_amount = models.FloatField(default=0)
+
+    increment_amount = models.FloatField(default=0)
+
+    late_fine = models.FloatField(default=0)
 
     absent_fine = models.FloatField(default=0)
 
+    max_members = models.IntegerField(default=50)
+
+    reminder_enabled = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -75,76 +99,39 @@ class Session(models.Model):
 
 class Record(models.Model):
 
-    STATUS_CHOICES = (
-        ("present", "Present"),
-        ("late", "Late"),
-        ("absent", "Absent"),
-    )
+        STATUS_CHOICES = (
+            ("present", "Present"),
+            ("late", "Late"),
+            ("absent", "Absent"),
+        )
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
+        user = models.ForeignKey(
+            settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE
+        )
 
-    session = models.ForeignKey(
-        Session,
-        on_delete=models.CASCADE
-    )
+        session = models.ForeignKey(
+            Session,
+            on_delete=models.CASCADE
+        )
 
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default="absent"
-    )
+        status = models.CharField(
+            max_length=10,
+            choices=STATUS_CHOICES,
+            default="absent"
+        )
 
-    fine = models.FloatField(default=0)
+        fine = models.FloatField(default=0)
 
-    absence_count = models.IntegerField(default=0)
+        absence_count = models.IntegerField(default=0)
 
-    marked_at = models.DateTimeField(default=timezone.now)
+        marked_at = models.DateTimeField(default=timezone.now)
 
-    class Meta:
-        unique_together = ("user", "session")
+        class Meta:
+                unique_together = ("user", "session")
 
-    def __str__(self):
-        return f"{self.user} - {self.session} - {self.status}"
-
-
-# =========================================================
-# PAYMENT
-# =========================================================
-
-class Payment(models.Model):
-
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
-    )
-
-    session = models.ForeignKey(
-        Session,
-        on_delete=models.CASCADE
-    )
-
-    amount = models.FloatField()
-
-    fine_paid = models.FloatField(default=0)
-
-    total_paid = models.FloatField(default=0)
-
-    paid_at = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        unique_together = ("user", "session")
-
-    def save(self, *args, **kwargs):
-
-        self.total_paid = self.amount + self.fine_paid
-
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.user} - {self.total_paid}"
+                def __str__(self):
+                    return f"{self.user} - {self.session} - {self.status}"
 
 
 # =========================================================
@@ -200,3 +187,39 @@ class SangamSettings(models.Model):
 
     def __str__(self):
         return f"Settings - {self.group.name}"
+
+
+
+
+class ActivityLog(models.Model):
+
+    ACTIONS = (
+        ('create', 'Create'),
+        ('update', 'Update'),
+        ('delete', 'Delete'),
+        ('payment', 'Payment'),
+        ('attendance', 'Attendance'),
+        ('session', 'Session'),
+        ('fine', 'Fine'),
+        ('group', 'Group'),
+        ('member', 'Member'),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    action_type = models.CharField(max_length=30, choices=ACTIONS)
+
+    message = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.message

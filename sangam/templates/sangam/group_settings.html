@@ -1,0 +1,204 @@
+{% extends 'sangam/base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-[#F5F3EF] pb-10">
+
+    <!-- HEADER -->
+    <div class="bg-white border-b border-gray-100 sticky top-14 z-30">
+        <div class="max-w-5xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold">Admin Panel</p>
+                <h1 class="text-xl font-black text-gray-900 mt-0.5">Group Settings</h1>
+            </div>
+            <a href="{% url 'dashboard' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm transition">
+                ← Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-6">
+
+        <!-- ===== GROUP SETTINGS FORM ===== -->
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Group Details -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+                <h2 class="text-base font-black text-gray-900 mb-1">Group Information</h2>
+                <p class="text-xs text-gray-400 mb-5">Basic details of your Sangam group.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Sangam Name</label>
+                        <input type="text" name="name" value="{{ group.name }}" required
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Max Members</label>
+                        <input type="number" name="max_members" value="{{ group.max_members }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Description</label>
+                        <textarea name="description" rows="3"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">{{ group.description }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finance Settings -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+                <h2 class="text-base font-black text-gray-900 mb-1">Finance Configuration</h2>
+                <p class="text-xs text-gray-400 mb-5">Contributions, fines, and increments.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Weekly Contribution (₹)</label>
+                        <input type="number" step="0.01" name="weekly_amount" value="{{ group.weekly_amount }}" required
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Weekly Increment (₹)</label>
+                        <input type="number" step="0.01" name="increment_amount" value="{{ group.increment_amount }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Late Fine (₹)</label>
+                        <input type="number" step="0.01" name="late_fine" value="{{ group.late_fine }}" required
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Absent Fine (₹)</label>
+                        <input type="number" step="0.01" name="absent_fine" value="{{ group.absent_fine }}" required
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Schedule -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+                <h2 class="text-base font-black text-gray-900 mb-1">Session Schedule</h2>
+                <p class="text-xs text-gray-400 mb-5">Meeting day and session timing.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Meeting Day</label>
+                        <select name="meeting_day"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                            <option value="Sunday"    {% if group.meeting_day == "Sunday"    %}selected{% endif %}>Sunday</option>
+                            <option value="Monday"    {% if group.meeting_day == "Monday"    %}selected{% endif %}>Monday</option>
+                            <option value="Tuesday"   {% if group.meeting_day == "Tuesday"   %}selected{% endif %}>Tuesday</option>
+                            <option value="Wednesday" {% if group.meeting_day == "Wednesday" %}selected{% endif %}>Wednesday</option>
+                            <option value="Thursday"  {% if group.meeting_day == "Thursday"  %}selected{% endif %}>Thursday</option>
+                            <option value="Friday"    {% if group.meeting_day == "Friday"    %}selected{% endif %}>Friday</option>
+                            <option value="Saturday"  {% if group.meeting_day == "Saturday"  %}selected{% endif %}>Saturday</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Start Time</label>
+                        <input type="time" name="start_time" value="{{ group.start_time|time:'H:i' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">End Time</label>
+                        <input type="time" name="end_time" value="{{ group.end_time|time:'H:i' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-black text-gray-900">Meeting Reminders</h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Send reminders before weekly sessions.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="reminder_enabled" class="sr-only peer" {% if group.reminder_enabled %}checked{% endif %}>
+                        <div class="w-12 h-6 bg-gray-200 rounded-full peer peer-checked:bg-amber-500 transition-all after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-6"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Save -->
+            <div class="flex justify-end">
+                <button type="submit"
+                    class="bg-amber-500 hover:bg-amber-600 text-white font-black px-8 py-3 rounded-xl shadow-sm shadow-amber-500/30 transition text-sm">
+                    Save Settings
+                </button>
+            </div>
+        </form>
+
+        <!-- ===== ADD MEMBER LINK ===== -->
+        <a href="{% url 'add_member' %}" class="flex items-center justify-between bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5 hover:border-amber-300 hover:bg-amber-50/30 transition-all group">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg shrink-0">👤</div>
+                <div>
+                    <p class="font-black text-gray-900">Add New Member</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Register a new participant to the group.</p>
+                </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-300 group-hover:text-amber-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
+
+                <!-- ===== MEMBER MANAGEMENT ===== -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-black text-gray-900">Manage Members</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Promote to admin or remove admin rights.</p>
+                </div>
+                <span class="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">{{ users.count }} Members</span>
+            </div>
+            <div class="divide-y divide-gray-50">
+                {% for user in users %}
+                <div class="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0
+                            {% if user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                            {{ user.name|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <p class="font-bold text-gray-900 text-sm">{{ user.name }}</p>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase
+                                    {% if user.role == 'admin' %}bg-purple-100 text-purple-600{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                    {{ user.role }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-400">{{ user.phone }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{% url 'member_detail' user.id %}" class="text-xs font-bold text-gray-500 hover:text-amber-600 px-2 py-1 rounded-lg hover:bg-amber-50 transition">
+                            View
+                        </a>
+                        {% if user.id != request.user.id %}
+                            {% if user.role == 'admin' %}
+                            <a href="{% url 'remove_admin' user.id %}" onclick="return confirm('Remove admin rights from {{ user.name }}?')"
+                                class="text-xs font-bold text-red-500 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition">
+                                Remove Admin
+                            </a>
+                            {% else %}
+                            <a href="{% url 'make_admin' user.id %}" onclick="return confirm('Make {{ user.name }} an admin?')"
+                                class="text-xs font-bold text-purple-600 hover:text-purple-800 px-2 py-1 rounded-lg hover:bg-purple-50 transition">
+                                Make Admin
+                            </a>
+                            {% endif %}
+                        {% else %}
+                        <span class="text-[10px] text-gray-400 font-medium px-2 py-1">(You)</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="py-8 text-center text-gray-400 text-sm">No members found.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

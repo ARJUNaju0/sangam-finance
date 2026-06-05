@@ -8,7 +8,7 @@ urlpatterns = [
     path('', include('sangam.urls')),
     path('accounts/', include('accounts.urls')),
     path('passbook/', include('passbook.urls')),
-    # path('payments/', include('payments.urls')),
+    path('payments/', include('payments.urls')),
     # path('attendance/', include('attendance.urls')),
     # path('auditlogs/', include('auditlogs.urls')),
     # path('notifications/', include('notifications.urls')),
